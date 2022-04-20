@@ -490,6 +490,39 @@ void arduinoFFT::Parabola(double x1, double y1, double x2, double y2, double x3,
 	*c = (x2 * x3 * (x2 - x3) * y1 + x3 * x1 * (x3 - x1) * y2 + x1 * x2 * (x1 - x2) * y3) *reversed_denom;
 }
 
+void arduinoFFT::TopPeaks(double* peaks, int numberOfPeaks)
+{
+	double maxY[numberOfPeaks] = { 0 };
+	uint16_t IndexOfMaxY[numberOfPeaks] = { 0 };
+	//If sampling_frequency = 2 * max_frequency in signal,
+	//value would be stored at position samples/2
+	for (uint16_t i = 1; i < ((this->_samples >> 1) + 1); i++) {
+		if ((this->_vReal[i - 1] < this->_vReal[i]) && (this->_vReal[i] > this->_vReal[i + 1])) {
+			for (uint16_t j = 0; j < numberOfPeaks; j++) {
+				if (this->_vReal[i] > maxY[j]) {
+					// move all values from j index to right
+					for (uint16_t k = numberOfPeaks - 1; k > j; k--) {
+						maxY[k] = maxY[k - 1];
+					}
+					maxY[j] = this->_vReal[i];
+					IndexOfMaxY[j] = i;
+					break;
+				}
+			}
+
+		}
+	}
+	for (int i = 0; i < numberOfPeaks; i++)
+	{
+		double delta = 0.5 * ((this->_vReal[IndexOfMaxY[i] - 1] - this->_vReal[IndexOfMaxY[i] + 1]) / (this->_vReal[IndexOfMaxY[i] - 1] - (2.0 * this->_vReal[IndexOfMaxY[i]]) + this->_vReal[IndexOfMaxY[i] + 1]));
+		double interpolatedX = ((IndexOfMaxY[i] + delta) * this->_samplingFrequency) / (this->_samples - 1);
+		if (IndexOfMaxY[i] == (this->_samples >> 1)) //To improve calculation on edge values
+			interpolatedX = ((IndexOfMaxY[i] + delta) * this->_samplingFrequency) / (this->_samples);
+		peaks[i] = (interpolatedX);
+	}
+}
+
+
 uint8_t arduinoFFT::Exponent(uint16_t value)
 {
 	#warning("This method may not be accessible on future revisions.")

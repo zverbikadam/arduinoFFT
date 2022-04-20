@@ -90,6 +90,7 @@ public:
 	double MajorPeak(double *vD, uint16_t samples, double samplingFrequency);
 	void MajorPeak(double *vD, uint16_t samples, double samplingFrequency, double *f, double *v);
 	void Windowing(double *vData, uint16_t samples, uint8_t windowType, uint8_t dir);
+	void TopPeaks(double* peaks, int numberOfPeaks);
 
 	void ComplexToMagnitude();
 	void Compute(uint8_t dir);
